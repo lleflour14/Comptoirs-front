@@ -1,5 +1,6 @@
 <template>
     <main>
+        <div>Les clients - page {{data.listePage.number+1}}/{{data.listePage.totalPages}}</div>
         <div>
             <table>
                 <tr>
@@ -20,10 +21,10 @@
                     <td>{{ client.adresse.ville }}</td>
                 </tr>
                 <tr>
-                    <td><button @click="">first page</button></td>
-                    <td><button @click="">page d'avant</button></td>
-                    <td><button @click="">page d'après</button></td>
-                    <td><button @click="">dernière page</button></td>
+                    <td><button @click="chargeClients()">first page</button></td>
+                    <td><button @click="NextPage(data.listePage.number-1)">page d'avant</button></td>
+                    <td><button @click="NextPage(data.listePage.number+1)">page d'après</button></td>
+                    <td><button @click="NextPage(data.listePage.totalPages-1)">dernière page</button></td>
                 </tr>
             </table>
         </div>
@@ -37,8 +38,10 @@ import { doAjaxRequest } from "@/api";
 
 let data = reactive({
     // La liste des catégories affichée sous forme de table
-    listeClient: []
+    listeClient: [],
+    listePage: []
 });
+
 
 function showError(error) {
     console.log("Erreur : status %d", error.status)
@@ -47,15 +50,24 @@ function showError(error) {
 }
 
 function chargeClients() {
-    // Appel à l'API pour avoir la liste des catégories
-    // Trié par code, descendant
-    // Verbe HTTP GET par défaut
-    doAjaxRequest("/api/clients")
+    doAjaxRequest("/api/clients?page=0&size=5")
         .then((json) => {
             data.listeClient = json._embedded.clients;
+            data.listePage = json.page;
         })
         .catch(showError);
 }
+
+function NextPage(index) {
+    doAjaxRequest("/api/clients?page="+index+"&size=5")
+        .then((json) => {
+            data.listeClient = json._embedded.clients;
+            data.listePage = json.page;
+        })
+        .catch(showError);
+}
+
+
 
 // A l'affichage du composant, on affiche la liste
 onMounted(chargeClients);
